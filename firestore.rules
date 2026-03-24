@@ -44,12 +44,21 @@ service cloud.firestore {
     //   - timestamp: timestamp (required)
     //   - status: string (required)
     //
-    // Collection: chats/{roomId}/messages
+    // Collection: chats/{chatId}
+    // Fields:
+    //   - participants: list (required)
+    //   - updatedAt: timestamp (required)
+    //   - lastMessage: string (optional)
+    //   - lastTimestamp: timestamp (optional)
+    //
+    // Collection: chats/{chatId}/messages
     // Fields:
     //   - senderId: string (required)
+    //   - senderName: string (required)
+    //   - senderPhoto: string (required)
     //   - text: string (required)
     //   - timestamp: timestamp (required)
-    //   - roomId: string (required)
+    //   - chatId: string (required)
 
     // ===============================================================
     // Helper Functions
@@ -60,6 +69,10 @@ service cloud.firestore {
 
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isChatParticipant(chatId) {
+      return isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
     }
 
     function isValidUser(data) {
@@ -85,8 +98,16 @@ service cloud.firestore {
              data.status in ['Confirmed', 'Cancelled'];
     }
 
+    function isValidChat(data) {
+      return data.keys().hasAll(['participants', 'updatedAt']) &&
+             data.participants is list &&
+             data.participants.size() == 2 &&
+             request.auth.uid in data.participants &&
+             data.updatedAt is timestamp;
+    }
+
     function isValidMessage(data) {
-      return data.keys().hasAll(['senderId', 'text', 'timestamp', 'roomId']) &&
+      return data.keys().hasAll(['senderId', 'text', 'timestamp', 'chatId']) &&
              data.senderId == request.auth.uid &&
              data.text is string && data.text.size() < 1000 &&
              data.timestamp is timestamp;
@@ -99,6 +120,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow create, update: if isOwner(userId) && isValidUser(request.resource.data);
+
+      match /notifications/{notificationId} {
+        allow read, update, delete: if isOwner(userId);
+        allow create: if isAuthenticated();
+      }
     }
 
     match /schools/{schoolId} {
@@ -119,9 +145,15 @@ service cloud.firestore {
       allow update: if isAuthenticated() && isOwner(resource.data.userId) && isValidBooking(request.resource.data);
     }
 
-    match /chats/{roomId}/messages/{messageId} {
-      allow read: if isAuthenticated(); // Could be restricted to event participants
-      allow create: if isAuthenticated() && isValidMessage(request.resource.data);
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && (chatId == 'global' || resource.data.participants.hasAny([request.auth.uid]));
+      allow create: if isAuthenticated() && (chatId == 'global' || isValidChat(request.resource.data));
+      allow update: if isAuthenticated() && (chatId == 'global' || resource.data.participants.hasAny([request.auth.uid]));
+    }
+
+    match /chats/{chatId}/messages/{messageId} {
+      allow read: if isAuthenticated() && (chatId == 'global' || isChatParticipant(chatId));
+      allow create: if isAuthenticated() && (chatId == 'global' || isChatParticipant(chatId)) && isValidMessage(request.resource.data);
     }
   }
 }

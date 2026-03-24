@@ -64,17 +64,48 @@
       "type": "object",
       "properties": {
         "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderPhoto": { "type": "string" },
         "text": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
-        "roomId": { "type": "string" }
+        "chatId": { "type": "string" }
       },
-      "required": ["senderId", "text", "timestamp", "roomId"]
+      "required": ["senderId", "text", "timestamp", "chatId"]
+    },
+    "Chat": {
+      "title": "Private Chat",
+      "description": "A private conversation between two users",
+      "type": "object",
+      "properties": {
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "lastMessage": { "type": "string" },
+        "lastTimestamp": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["participants", "updatedAt"]
+    },
+    "Notification": {
+      "title": "App Notification",
+      "description": "A notification for a user",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" },
+        "type": { "type": "string", "enum": ["message", "event", "system"] }
+      },
+      "required": ["title", "body", "timestamp", "read", "type"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "User profiles"
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notifications"
     },
     "/schools/{schoolId}": {
       "schema": "DanceSchool",
@@ -88,9 +119,13 @@
       "schema": "Booking",
       "description": "Event bookings"
     },
-    "/chats/{roomId}/messages/{messageId}": {
+    "/chats/{chatId}": {
+      "schema": "Chat",
+      "description": "Private chat metadata"
+    },
+    "/chats/{chatId}/messages/{messageId}": {
       "schema": "ChatMessage",
-      "description": "Messages in a chat room"
+      "description": "Messages in a private chat"
     }
   }
 }
