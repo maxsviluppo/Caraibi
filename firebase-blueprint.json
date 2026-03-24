@@ -1,0 +1,96 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Information about a dancer",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "bio": { "type": "string" },
+        "styles": { "type": "array", "items": { "type": "string" }, "description": "Salsa, Bachata, Kizomba, etc." },
+        "level": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced", "Pro"] },
+        "role": { "type": "string", "enum": ["Leader", "Follower", "Both"] },
+        "location": { "type": "object", "properties": { "lat": { "type": "number" }, "lng": { "type": "number" } } }
+      },
+      "required": ["uid", "displayName"]
+    },
+    "DanceSchool": {
+      "title": "Dance School",
+      "description": "A school offering dance classes",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "location": { "type": "object", "properties": { "lat": { "type": "number" }, "lng": { "type": "number" } } },
+        "description": { "type": "string" },
+        "website": { "type": "string" },
+        "styles": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["name", "location"]
+    },
+    "Event": {
+      "title": "Dance Event",
+      "description": "A social dance night or congress",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "location": { "type": "object", "properties": { "lat": { "type": "number" }, "lng": { "type": "number" } } },
+        "address": { "type": "string" },
+        "type": { "type": "string", "enum": ["Social", "Congress", "Workshop"] },
+        "organizerId": { "type": "string" },
+        "price": { "type": "number" }
+      },
+      "required": ["title", "date", "location"]
+    },
+    "Booking": {
+      "title": "Event Booking",
+      "description": "A reservation for an event",
+      "type": "object",
+      "properties": {
+        "eventId": { "type": "string" },
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Confirmed", "Cancelled"] }
+      },
+      "required": ["eventId", "userId", "timestamp"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "A message in a chat room",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "roomId": { "type": "string" }
+      },
+      "required": ["senderId", "text", "timestamp", "roomId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles"
+    },
+    "/schools/{schoolId}": {
+      "schema": "DanceSchool",
+      "description": "Dance schools"
+    },
+    "/events/{eventId}": {
+      "schema": "Event",
+      "description": "Dance events"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Event bookings"
+    },
+    "/chats/{roomId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Messages in a chat room"
+    }
+  }
+}

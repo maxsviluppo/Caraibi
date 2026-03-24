@@ -1,0 +1,5 @@
+{
+  "name": "SalsaConnect",
+  "description": "The ultimate social dance app for Salsa, Bachata, and Kizomba. Find schools, events, and dance partners near you.",
+  "requestFramePermissions": ["geolocation"]
+}
